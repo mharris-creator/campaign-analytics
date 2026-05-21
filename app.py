@@ -34,6 +34,56 @@ def fmt_pct(v) -> str:
     return "—" if v is None or pd.isna(v) else f"{v*100:.1f}%"
 
 
+HELP_TEXT = """
+**What this is:** the journey people take from *"a company we'd love to sell to"* all
+the way to *"paying customer"* — how many make it through each step, how long it takes,
+how many dollars are in play, and which campaigns and accounts are driving it.
+
+#### The stages, in plain English
+Think of it as a set of doors someone walks through, in order. Each door is narrower
+than the last — that's the "funnel."
+
+| Stage | What it means |
+|---|---|
+| **MTL** — Marketing Target Lead | A company we *want* to reach, but who hasn't raised their hand yet. Our "aiming at" list. *(Shown separately as the **Target Pool** — not everyone starts here.)* |
+| **MCL** — Marketing Captured Lead | They raised their hand (filled out a form, grabbed a download). **This is where the funnel really starts.** |
+| **MQL** — Marketing Qualified Lead | They look like a good fit, so marketing says *"worth sales' time."* |
+| **SAL** — Sales Accepted Lead | Sales agrees and picks it up. |
+| **SQL** — Sales Qualified Lead | Sales confirms a real opportunity — **this is where a dollar value gets attached.** |
+| **Customer** | They bought. |
+
+The **conversion %** is simply: of the people at one door, what share made it to the next.
+
+#### A few words you'll see
+- **Cycle / Resell.** After someone becomes a Customer, we often sell them something
+  new later — so they walk the whole path *again*. We call each trip a **cycle**. A
+  **resell** cycle is a contact who was already a customer. (Filter: New vs. Resell.)
+- **Person vs. Account.** A **person** is one contact; an **account** is their company.
+  One company can have many people. **Strategic Accounts (Named Targets)** are the
+  specific companies we deliberately chose to pursue — the chart splits these from
+  everyone else so you can watch our priority accounts.
+- **Cohort vs. Period** (top of the left panel):
+  *Cohort* follows **the same group** that entered in your date range to see how far it
+  got — best for *"of the leads we got in Q1, how many became customers?"* (true rates).
+  *Period* just counts how many crossed each line during the window — best for *"how
+  busy were we this month?"*
+- **SQL Pipeline $** is the dollar value of the real opportunities tied to the leads in
+  your current view — split into **Open** (still in play), **Won**, and **Lost**.
+
+#### How to use it
+1. **Filters on the left** slice everything by date, campaign, account type, cycle type,
+   and deal stage/status. The whole page updates instantly.
+2. **Hover** over any chart to see exact numbers.
+3. **Generate exec PDF** (bottom of the left panel) downloads a one-page summary to
+   email or drop into a deck.
+"""
+
+
+def render_help():
+    with st.expander("How to read this dashboard — start here", expanded=False):
+        st.markdown(HELP_TEXT)
+
+
 def db_mtime() -> float:
     return os.path.getmtime(config.DB_PATH) if os.path.exists(config.DB_PATH) else 0.0
 
@@ -122,6 +172,7 @@ def main():
     st.title("Campaign Analytics")
     st.caption(f"{scope}  ·  {seg_label}  ·  {cyc_label}  ·  {start_d:%b %d, %Y} – {end_d:%b %d, %Y}  ·  "
                f"{'Cohort @ ' + anchor if mode == 'cohort' else 'Period-entry'} funnel")
+    render_help()
 
     # ---------------- Target pool + funnel KPIs ----------------
     k = st.columns(6)
