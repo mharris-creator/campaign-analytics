@@ -16,6 +16,7 @@ lose every repeat pass.
 
 import json
 import os
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -23,11 +24,31 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-DB_PATH = os.getenv("CAMPAIGN_DB_PATH") or str(BASE_DIR / "data" / "campaign_analytics.db")
+
+def _writable_dir(preferred: Path) -> Path:
+    """Return `preferred` if writable, else a temp-dir equivalent.
+
+    Hosts like Streamlit Cloud mount the repo read-only, so the SQLite DB and any
+    generated reports must live in a writable location (falls back to the system
+    temp dir there; uses the project folder locally).
+    """
+    try:
+        preferred.mkdir(parents=True, exist_ok=True)
+        probe = preferred / ".write_test"
+        probe.write_text("ok")
+        probe.unlink()
+        return preferred
+    except OSError:
+        fallback = Path(tempfile.gettempdir()) / "campaign_analytics" / preferred.name
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
+
+
+DB_PATH = os.getenv("CAMPAIGN_DB_PATH") or str(_writable_dir(BASE_DIR / "data") / "campaign_analytics.db")
 SCHEMA_PATH = BASE_DIR / "db" / "schema.sql"
 STAGE_MAPPING_PATH = BASE_DIR / "stage_mapping.json"
 ACCOUNT_CONFIG_PATH = BASE_DIR / "account_config.json"
-REPORTS_DIR = BASE_DIR / "reports"
+REPORTS_DIR = _writable_dir(BASE_DIR / "reports")
 
 HUBSPOT_TOKEN = os.getenv("HUBSPOT_TOKEN", "")
 DEAL_PIPELINES = [p.strip() for p in os.getenv("DEAL_PIPELINES", "").split(",") if p.strip()]
