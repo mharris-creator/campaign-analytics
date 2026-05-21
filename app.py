@@ -79,9 +79,10 @@ The **conversion %** is simply: of the people at one door, what share made it to
 """
 
 
-def render_help():
-    with st.expander("How to read this dashboard — start here", expanded=False):
-        st.markdown(HELP_TEXT)
+def render_guide():
+    st.title("Guide — How to read this dashboard")
+    st.caption("A plain-English walkthrough for executives. Switch back to the data with the **Page** selector in the left sidebar.")
+    st.markdown(HELP_TEXT)
 
 
 def db_mtime() -> float:
@@ -98,6 +99,12 @@ def _meta(_mtime):
 
 
 def main():
+    page = st.sidebar.radio("Page", ["Dashboard", "Guide"],
+                            help="Guide explains the funnel and how to use this dashboard.")
+    if page == "Guide":
+        render_guide()
+        return
+
     if not os.path.exists(config.DB_PATH):
         # On a fresh host (e.g. Streamlit Cloud) there is no DB yet — seed sample
         # data so the app is viewable immediately. Live data replaces this via sync.
@@ -172,7 +179,7 @@ def main():
     st.title("Campaign Analytics")
     st.caption(f"{scope}  ·  {seg_label}  ·  {cyc_label}  ·  {start_d:%b %d, %Y} – {end_d:%b %d, %Y}  ·  "
                f"{'Cohort @ ' + anchor if mode == 'cohort' else 'Period-entry'} funnel")
-    render_help()
+    st.caption("New here? Open the **Guide** page (Page selector, top of the left sidebar) for a plain-English walkthrough.")
 
     # ---------------- Target pool + funnel KPIs ----------------
     k = st.columns(6)
